@@ -48,12 +48,11 @@ export async function fetchDailyBars(
   to: Date
 ): Promise<DailyBar[]> {
   const key = getTwelveKey();
-  const startDate = from.toISOString().slice(0, 10);
-  const endDate = to.toISOString().slice(0, 10);
 
+  // Free tier doesn't support start_date/end_date — use outputsize and filter in memory
   const url =
     `${TWELVE_BASE}/time_series?symbol=${ticker}&interval=1day` +
-    `&start_date=${startDate}&end_date=${endDate}&outputsize=5000&apikey=${key}`;
+    `&outputsize=5000&apikey=${key}`;
 
   // Twelve Data returns a JSON body even on error (incl. HTTP 404), so parse first.
   await throttleTwelve();
@@ -80,14 +79,20 @@ export async function fetchDailyBars(
     throw new Error(`Twelve Data error: ${msg}`);
   }
 
-  return (data.values ?? []).map((v) => ({
-    date: new Date(v.datetime),
-    open: parseFloat(v.open),
-    high: parseFloat(v.high),
-    low: parseFloat(v.low),
-    close: parseFloat(v.close),
-    volume: parseFloat(v.volume),
-  }));
+  // Filter by date range in-memory (free tier doesn't support start_date/end_date)
+  const fromMs = from.getTime();
+  const toMs = to.getTime();
+
+  return (data.values ?? [])
+    .map((v) => ({
+      date: new Date(v.datetime),
+      open: parseFloat(v.open),
+      high: parseFloat(v.high),
+      low: parseFloat(v.low),
+      close: parseFloat(v.close),
+      volume: parseFloat(v.volume),
+    }))
+    .filter((bar) => bar.date.getTime() >= fromMs && bar.date.getTime() <= toMs);
 }
 
 export async function fetchLatestPrice(ticker: string): Promise<number | null> {

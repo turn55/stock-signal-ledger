@@ -1,9 +1,9 @@
 import type { StockProfile } from "./yahoo";
 
-const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
+const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 
 /**
- * Generate HV analysis for a stock using Kimi API.
+ * Generate HV analysis for a stock using DeepSeek API.
  * Horizontal: competitive landscape & market position
  * Vertical: development history & key milestones
  */
@@ -11,8 +11,8 @@ export async function generateStockAnalysis(
   ticker: string,
   profile: StockProfile
 ): Promise<string> {
-  const apiKey = process.env.KIMI_API_KEY;
-  if (!apiKey) throw new Error("KIMI_API_KEY not set");
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY not set");
 
   const prompt = `你是一位资深的股票研究分析师。请对以下股票进行深度分析，采用"纵横分析法"：
 
@@ -54,14 +54,14 @@ export async function generateStockAnalysis(
 - 小标题用"一、""二、""三、"这样的中文序号，独占一行即可
 - 总字数控制在 3000-5000 字`;
 
-  const res = await fetch(KIMI_API_URL, {
+  const res = await fetch(DEEPSEEK_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "moonshot-v1-32k",
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
@@ -76,7 +76,7 @@ export async function generateStockAnalysis(
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Kimi API error: ${res.status} ${errText}`);
+    throw new Error(`DeepSeek API error: ${res.status} ${errText}`);
   }
 
   const data = await res.json();

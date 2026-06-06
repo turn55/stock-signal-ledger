@@ -7,6 +7,7 @@ import { sendMention, sendSentimentFlip, sendDivergence, sendAlert } from "@/lib
 import { detectSentiment } from "@/lib/sentiment";
 import { fetchDailyBars, fetchLatestPrice, fetchStockProfile } from "@/lib/yahoo";
 import { generateStockAnalysis } from "@/lib/kimi";
+import { translateToChinese } from "@/lib/translate";
 import { buildStockResponse } from "@/lib/stock-response";
 
 const PROFILE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -52,6 +53,16 @@ async function runDailyJob() {
               postedAt: new Date(tweet.createdAt),
               url: tweet.url,
             },
+          });
+
+          // Auto-translate to Chinese in background
+          translateToChinese(tweet.text).then((zh) => {
+            if (zh) {
+              prisma.post.update({
+                where: { id: post.id },
+                data: { contentZh: zh },
+              }).catch(() => {});
+            }
           });
 
           for (const mention of mentions) {
@@ -294,8 +305,8 @@ async function runDailyJob() {
 
   // --- Step 5: Generate Kimi analyses ---
   try {
-    if (!process.env.KIMI_API_KEY) {
-      results.generateAnalyses = { skipped: "no KIMI_API_KEY" };
+    if (!process.env.DEEPSEEK_API_KEY) {
+      results.generateAnalyses = { skipped: "no DEEPSEEK_API_KEY" };
     } else {
       const stocks = await prisma.stock.findMany({
         where: { analysis: null },

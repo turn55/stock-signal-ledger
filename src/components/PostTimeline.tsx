@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 interface Post {
   id: string;
   content: string;
+  contentZh: string | null;
   postedAt: string;
   url: string;
   blogger: {
@@ -109,7 +110,15 @@ export default function PostTimeline({
                 ))}
               </div>
             </div>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {/* Chinese translation shown first when available, English below */}
+            {post.contentZh && (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap text-[var(--text-primary)] mb-1">
+                {post.contentZh}
+              </p>
+            )}
+            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${
+              post.contentZh ? "text-[var(--text-tertiary)] text-xs" : ""
+            }`}>
               {post.content}
             </p>
             <a

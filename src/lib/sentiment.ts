@@ -1,4 +1,4 @@
-const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
+const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 
 type Sentiment = "bullish" | "bearish";
 
@@ -74,7 +74,7 @@ export async function detectSentiment(
   const rulesResult = detectSentimentByRules(text);
   if (rulesResult) return rulesResult;
 
-  const apiKey = process.env.KIMI_API_KEY;
+  const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) return null;
 
   try {
@@ -153,14 +153,14 @@ Reply with exactly one word: bullish, bearish, or unknown. Nothing else.`;
       `★$${ticker}★`
     );
 
-    const res = await fetch(KIMI_API_URL, {
+    const res = await fetch(DEEPSEEK_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "moonshot-v1-8k",
+        model: "deepseek-chat",
         messages: [
           {
             role: "system",
