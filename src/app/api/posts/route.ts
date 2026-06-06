@@ -27,10 +27,12 @@ export async function GET(req: NextRequest) {
       skip: offset,
       select: {
         id: true,
+        xPostId: true,
         content: true,
         contentZh: true,
         postedAt: true,
         url: true,
+        fetchedAt: true,
         blogger: {
           select: {
             xUsername: true,
