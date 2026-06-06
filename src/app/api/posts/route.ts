@@ -25,7 +25,12 @@ export async function GET(req: NextRequest) {
       orderBy: { postedAt: "desc" },
       take: limit,
       skip: offset,
-      include: {
+      select: {
+        id: true,
+        content: true,
+        contentZh: true,
+        postedAt: true,
+        url: true,
         blogger: {
           select: {
             xUsername: true,
