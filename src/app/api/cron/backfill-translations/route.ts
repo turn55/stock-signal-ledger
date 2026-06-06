@@ -1,27 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { translateToChinese } from "@/lib/translate";
 
-export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  const expected = process.env.CRON_SECRET;
-  if (!expected || authHeader !== `Bearer ${expected}`) {
-    const url = new URL(req.url);
-    const secret = url.searchParams.get("secret");
-    if (!secret || secret !== expected) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
-
-  runBackfill().catch(console.error);
-  return NextResponse.json({ ok: true, status: "running" });
-}
-
-export async function GET(req: NextRequest) {
-  return POST(req);
-}
-
-async function runBackfill() {
+async function doBackfill() {
   const posts = await prisma.post.findMany({
     where: { contentZh: null },
     orderBy: { postedAt: "desc" },
@@ -51,3 +33,23 @@ async function runBackfill() {
   }
   console.log("Backfill done!");
 }
+
+async function handler(req: NextRequest) {
+  // Support auth via query param for GET requests
+  const secretParam = req.nextUrl.searchParams.get("secret");
+  if (secretParam) {
+    const expected = process.env.CRON_SECRET;
+    if (!expected || secretParam !== expected) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } else {
+    const authError = verifyCronAuth(req);
+    if (authError) return authError;
+  }
+
+  doBackfill().catch(console.error);
+  return NextResponse.json({ ok: true, status: "running" });
+}
+
+export const GET = handler;
+export const POST = handler;
