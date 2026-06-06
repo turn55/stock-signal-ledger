@@ -353,7 +353,7 @@ export default function StockInfo({ ticker, onMentionClick }: Props) {
         onMentionClick={onMentionClick}
       />
 
-      {data.analysis && (
+      {data.analysis ? (
         <div className="border-t border-[var(--border-soft)] pt-4">
           <h4 className="text-sm font-bold text-[var(--accent-green)] mb-3">
             纵横分析报告
@@ -361,6 +361,15 @@ export default function StockInfo({ ticker, onMentionClick }: Props) {
           <div className="text-sm leading-7 text-[var(--text-primary)] whitespace-pre-wrap">
             {renderAnalysis(data.analysis)}
           </div>
+        </div>
+      ) : (
+        <div className="border-t border-[var(--border-soft)] pt-4">
+          <h4 className="text-sm font-bold text-[var(--accent-green)] mb-3">
+            纵横分析报告
+          </h4>
+          <p className="text-xs text-[var(--text-secondary)]">
+            {!p ? "股票资料尚未同步，分析将在每日 cron 任务完成后自动生成" : "分析生成中，请稍后刷新查看"}
+          </p>
         </div>
       )}
 

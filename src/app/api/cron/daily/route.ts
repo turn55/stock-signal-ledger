@@ -309,8 +309,9 @@ async function runDailyJob() {
       results.generateAnalyses = { skipped: "no DEEPSEEK_API_KEY" };
     } else {
       const stocks = await prisma.stock.findMany({
-        where: { analysis: null },
+        where: { analysis: null, profileData: { not: null } },
         select: { id: true, ticker: true, profileData: true },
+        take: 5,
       });
       let generated = 0;
 
